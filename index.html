@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Finding Primo</title>
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.min.js"></script>	
+<script>
+
+	var prime = 2
+	var processPrimeQueueInterval=3000 
+	var primeQueueInterval=6000 
+	var stopSendingPrime=false
+
+	var timerId = setInterval(function() {
+    		if(!stopSendingPrime){
+			$('#number').text(prime)
+			$.get( "/ppq/evaluatePrime?number="+prime, function( data ) {
+  				//console.log("/ppq/evaluatePrime?number="+prime+" === "+data);
+  			});
+		}
+		$.get( "ppq/getProcessPrimeQueue", function( data ) {
+			var tempPPQ ="";
+  			$.each(data, function(index, value) {             
+	            	if(value != null){
+					tempPPQ=tempPPQ+", "+value.Body
+					//console.log(value)
+				}
+        		});
+  			$( "#ppqResult" ).html( tempPPQ );
+		});
+		prime++;
+		//if(prime==20)clearInterval(timerId);
+	}, processPrimeQueueInterval);
+
+	var timerId1 = setInterval(function() {
+		
+		$.get( "pq/getPrimeQueue", function( data ) {
+			console.log("data = ",data)
+			var tempPQ ="";
+  			$.each(data, function(index, value) {             
+	            	if(value != null){
+					tempPQ=tempPQ+", "+value.Body
+					console.log(value)
+				}
+        		});
+  			$( "#pqResult" ).html( tempPQ );
+		}).error(function(){
+			$( "#pqResult" ).html( "backend system unavailable" );
+		});
+	}, primeQueueInterval);
+
+	
+
+	$(document).ready(function() {
+    		$("#purgeBtnId").click(function(){
+			console.log("purging")
+			$.get( "ppq/purge", function( data ) {
+			});
+		});
+		$("#stopSendingPrimeBtnId").click(function(){
+			stopSendingPrime=!stopSendingPrime
+			$("#stopSendingPrimeSpan").text(stopSendingPrime)
+		});
+    	}); 
+
+</script>
+<style>
+.flex-parent-element {
+  display: flex;
+  width: 50%;
+}
+
+.flex-child-element {
+  flex: 1;
+  border: 2px solid blueviolet;
+  margin: 10px;
+}
+
+.flex-child-element:first-child {
+  margin-right: 20px;
+}
+
+</style>
+</head>
+<body>
+	<h1>Prime Calculator :<span id="number">0</span></h1>
+
+<div class="flex-parent-element">
+	<div class="flex-child-element magenta">
+		<h1>Numbers to Calculate</h1>
+		<div >
+			<span id="ppqResult"></span>
+		</div>
+	</div>
+	<div class="flex-child-element green">
+		<h1>Primes</h1>	
+		<div >
+			<span id="pqResult"></span>
+		</div>
+	</div>
+</div>
+<div>
+	<button id="purgeBtnId">purge</button>
+	<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+	<button id="stopSendingPrimeBtnId">stopSendingPrime</button>
+	<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+	<span id="stopSendingPrimeSpan"></span>
+
+</div>
+<div>
+</div>
+</body>
+</html>
